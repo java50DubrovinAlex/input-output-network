@@ -10,10 +10,10 @@ public class CopyAppl {
 		//Implementation Requirement: to use while cycle with read call
 		//main must not contain throws declaration
 		CopyFiles copy = new CopyFiles();
-		String sourceFile = args[0];
-		String destinationFile = args[1];
-		String command = args[2];
-		copy.copyfile(sourceFile, destinationFile, command);
+		String sourceFile = "/Users/alexanderdubrovin/Desktop/from_copy/Free_Test_PDF.pdf";
+		String destinationFile = "/Users/alexanderdubrovin/Desktop/from_copy/destination.pdf";
+		String command ="overwrite";
+		System.out.println(copy.copyfile(sourceFile, destinationFile, command));
 	}
 
 }
