@@ -3,8 +3,8 @@ package telran.employees.test;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.time.LocalDate;
-import java.util.Arrays;
-import java.util.List;
+import java.time.temporal.ChronoUnit;
+import java.util.*;
 
 import org.junit.jupiter.api.*;
 
@@ -74,21 +74,22 @@ class CompanyTests {
 
 	@Test
 	void testGetEmployees() {
-		Employee[]actual = company.getEmployees()
-				.toArray(Employee[]::new);
-		Arrays.sort(actual, (e1, e2) -> Long.compare(e1.id(), e2.id()));
-		assertArrayEquals(employees, actual);
+		runTest(employees, company);
 	}
 	@Test
 	@Order(2)
 	void testRestore() {
 		Company newCompany = new CompanyImpl();
 		newCompany.restore(TEST_DATA);
-		Employee[]actual = newCompany.getEmployees()
+		runTest(employees, newCompany);
+		
+	}
+
+	private void runTest(Employee[] expected, Company company) {
+		Employee[]actual = company.getEmployees()
 				.toArray(Employee[]::new);
 		Arrays.sort(actual, (e1, e2) -> Long.compare(e1.id(), e2.id()));
-		assertArrayEquals(employees, actual);
-		
+		assertArrayEquals(expected, actual);
 	}
 	@Test
 	@Order(1)
@@ -98,7 +99,15 @@ class CompanyTests {
 	//Tests of CW/HW #34
 	@Test
 	void testGetDepartmentSalaryDistribution() {
-		//TODO
+		DepartmentSalary [] expected = {
+				new DepartmentSalary(DEP2, SALARY2),
+				new DepartmentSalary(DEP1, SALARY1),
+				new DepartmentSalary(DEP3, SALARY3)
+			};
+			DepartmentSalary [] actual = company.getDepartmentSalaryDistribution()
+					.stream().sorted((ds1, ds2) -> Double.compare(ds1.salary(), ds2.salary())).
+					toArray(DepartmentSalary[]::new);
+			assertArrayEquals(expected, actual);
 	}
 	@Test
 	void testGetSalaryDistribution() {
@@ -112,27 +121,54 @@ class CompanyTests {
 	}
 	@Test
 	void testGetEmployeesByDepartment() {
-		List<Employee> res = company.getEmployeesByDepartment(DEP1);
-		List<Employee> expected = List.of(empl1, empl3);
-		assertEquals(expected, res);
+		runGetByDepartmentTest("XXX", new Employee[0]);
+		runGetByDepartmentTest(DEP1, new Employee[] {empl1, empl3});
 	}
+	private void runGetByDepartmentTest(String department, Employee[] expected) {
+		List<Employee> employees = company.getEmployeesByDepartment(department);
+		employees.sort((e1, e2) -> Long.compare(e1.id(), e2.id()));
+		assertArrayEquals(expected, employees.toArray(Employee[]::new));
+		
+	}
+	private void runGetBySalaryTest(int salaryFrom, int salaryTo,
+			Employee[]expected) {
+		List<Employee> employees = new LinkedList<>(company.getEmployeesBySalary(salaryFrom, salaryTo));
+		employees.sort((e1, e2) -> Long.compare(e1.id(), e2.id()));
+		assertArrayEquals(expected, employees.toArray(Employee[]::new));
+	}
+	private void runGetByAgeTest(int ageFrom, int ageTo,
+			Employee[]expected) {
+		List<Employee> employees = new LinkedList<>(company.getEmployeesByAge(ageFrom, ageTo));
+		employees.sort((e1, e2) -> Long.compare(e1.id(), e2.id()));
+		assertArrayEquals(expected, employees.toArray(Employee[]::new));
+	}
+
 	@Test
 	void testGetEmployeesBySalary(){
-		List<Employee> res = company.getEmployeesBySalary(5000, 10001);
-		List<Employee> expected = List.of( empl2, empl4, empl1, empl3);
-		assertEquals(expected, res);
+		runGetBySalaryTest(SALARY2, SALARY3 + 1, employees);
+		runGetBySalaryTest(SALARY3 + 1, 100000000, new Employee[0]);
+		runGetBySalaryTest(SALARY2, SALARY1+1, new Employee[] {empl1, empl2, empl3, empl4});
 	}
 	@Test
 	void testGetEmployeesByAge(){
-		//TODO
+		runGetByAgeTest(getAge(DATE1), getAge(DATE2) + 1, new Employee[] {empl1, empl2, empl3, empl4});
+		runGetByAgeTest(75, 80, new Employee[] {});
 	}
 	@Test
 	void testUpdateSalary() {
-		//TODO
+		company.updateSalary(ID5, SALARY1);
+		runGetBySalaryTest(SALARY3, SALARY3 + 1, new Employee[0]);
+		runGetBySalaryTest(SALARY2, SALARY1 + 1,employees);
 	}
 	@Test
 	void testUpdateDepartment() {
-		//TODO
+		company.updateDepartment(ID5, DEP1);
+		runGetByDepartmentTest(DEP1, new Employee[] {empl1, empl3, empl5});
+		runGetByDepartmentTest(DEP3, new Employee[0]);
+	}
+private int getAge(LocalDate birthDate) {
+		
+		return (int)ChronoUnit.YEARS.between(birthDate, LocalDate.now());
 	}
 
 }
