@@ -1,24 +1,18 @@
 package telran.view;
 
 import java.time.LocalDate;
-import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
-import javax.management.RuntimeErrorException;
-
 
 public interface InputOutput {
 	String readString(String prompt);
-	
 	void writeString(String string);
-	
 	default void writeLine(String string) {
 		writeString(string + "\n");
 	}
-	
 	default void writeObject(Object object) {
 		writeString(object.toString());
 	}
@@ -45,9 +39,18 @@ public interface InputOutput {
 		return readObject(prompt, errorPrompt, Integer::parseInt);
 	}
 	default Integer readInt(String prompt, String errorPrompt, int min, int max) {
-		return readObject(prompt, errorPrompt, s -> {
-			Integer res = Integer.parseInt(s);
-			return (res > min && res < max) ? res : null;
+		return readObject(String.format("%s[%d - %d] ", prompt, min, max), errorPrompt,
+				string -> {
+
+			int res = Integer.parseInt(string);
+			if (res < min) {
+				throw new IllegalArgumentException("must be not less than " + min);
+			}
+			if (res > max) {
+				throw new IllegalArgumentException("must be not greater than " + max);
+			}
+			return res;
+
 		});
 	}
 	default Long readLong(String prompt, String errorPrompt) {
@@ -55,56 +58,48 @@ public interface InputOutput {
 		return readObject(prompt, errorPrompt, Long::parseLong);
 	}
 	default Long readLong(String prompt, String errorPrompt, long min, long max) {
-		
-		return readObject(prompt, errorPrompt, s -> {
-			Long res = Long.parseLong(s);
-			return (res < max && res > min) ? res : null;
+		return readObject(String.format("%s[%d - %d] ", prompt, min, max), errorPrompt,
+				string -> {
+
+			long res = Long.parseLong(string);
+			if (res < min) {
+				throw new IllegalArgumentException("must be not less than " + min);
+			}
+			if (res > max) {
+				throw new IllegalArgumentException("must be not greater than " + max);
+			}
+			return res;
+
 		});
 	}
 	default Double readDouble(String prompt, String errorPrompt){
 		
 		return readObject(prompt, errorPrompt, Double::parseDouble);
 	}
-	default String readString (String prompt, String errorPrompt, Predicate<String> pattern){
-		return readObject(prompt, errorPrompt, s -> {
-			if(!pattern.test(s)) {
-				throw new RuntimeException("Data entry is incorrect");
+	default String readString (String prompt, String errorPrompt, Predicate<String> predicate){
+		return readObject(prompt, errorPrompt, string -> {
+			if(!predicate.test(string)) {
+				throw new IllegalArgumentException("");
 			}
-			return s;
+			return string;
 		});
 	}
 	default String readString(String prompt, String errorPrompt, HashSet<String> options){
-		return readObject(prompt, errorPrompt, s -> {
-			if(!options.contains(s)) {
-				throw new RuntimeException("Data not found!");
-			}
-			return s;
-			 
-		});
+		return readString(prompt, errorPrompt, options::contains);
 	}
 	default LocalDate readIsoDate(String prompt, String errorPrompt){
 		
 		return readObject(prompt, errorPrompt, LocalDate::parse);
 	}
 	default LocalDate readIsoDate(String prompt, String errorPrompt, LocalDate min, LocalDate max){
-		return readObject(prompt, errorPrompt, s -> {
-			LocalDate res = LocalDate.parse(s);
+		return readObject(prompt, errorPrompt, string -> {
+			LocalDate res = LocalDate.parse(string);
 			if(res.isBefore(min) || res.isAfter(max)) {
-				throw new RuntimeException("Date must be between: "+ min + max);
+				throw new IllegalArgumentException
+				(String.format("Date must be in the range from %s to %s", min, max));
 			}
 			return res;
 		});
 	}
-	default <T> T  readData(String prompt, String errorPrompt, T min, T max, Comparator<T> comp, Function<String, T> parser){
-		return readObject(prompt, errorPrompt, s -> {
-			T res = parser.apply(s);
-			if(comp.compare(res, min) < 0 || comp.compare(res, max) > 0) {
-				throw new RuntimeException("Data must be between: "+ min + max);
-			}
-			return res;		
-		});
-		
-	}
-
 	
 }
