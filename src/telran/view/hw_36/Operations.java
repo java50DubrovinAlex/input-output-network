@@ -2,10 +2,6 @@ package telran.view.hw_36;
 
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
-import java.util.Arrays;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
 import telran.view.InputOutput;
 import telran.view.Item;
 import telran.view.Menu;
@@ -22,7 +18,6 @@ public class Operations {
 
 	private static Item[] getMainMenu() {
 		
-		Item[] dateMenu = getItemDate();
 		return new Item[] {
 			Item.of(" Number Operations", Operations::openItemNumber),
 			Item.of(" Data Operations",Operations::openItemDate),
@@ -98,7 +93,6 @@ public class Operations {
 		LocalDate startDate = io.readIsoDate("Enter start date", "Wrong number");
 		LocalDate endDate = null;
 		while(!isEndDate) {
-			
 			endDate = io.readIsoDate("Enter end date (End date must be great then start date)", "Wrong number");
 			if(endDate.isAfter(startDate)) {
 				isEndDate = true;
