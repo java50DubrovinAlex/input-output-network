@@ -1,10 +1,7 @@
 package telran.net;
-
-import java.net.ServerSocket;
-import java.net.Socket;
-
-public class TcpServer implements Runnable{
-	private int port;
+import java.net.*;
+public class TcpServer implements Runnable {
+    private int port;
     private ApplProtocol protocol;
     private ServerSocket serverSocket;
 	public TcpServer(int port, ApplProtocol protocol) throws Exception {
@@ -19,7 +16,7 @@ public class TcpServer implements Runnable{
 		try {
 			while (true) {
 				Socket socket = serverSocket.accept();
-				TcpClientServer client = new TcpClientServer(socket, protocol);
+				ClientSessionHandler client = new ClientSessionHandler(socket, protocol);
 				client.run();
 			}
 			
@@ -28,5 +25,5 @@ public class TcpServer implements Runnable{
 		}
 
 	}
-	
+
 }

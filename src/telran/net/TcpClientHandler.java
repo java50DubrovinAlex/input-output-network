@@ -1,22 +1,21 @@
 package telran.net;
 
-import java.io.Closeable;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.io.Serializable;
-import java.net.Socket;
-
+import java.io.*;
+import java.net.*;
 public class TcpClientHandler implements Closeable, NetworkHandler {
-	Socket socket;
-	ObjectOutputStream writer;
-	ObjectInputStream reader;
-	public TcpClientHandler(String host, int port)throws Exception {
-		socket = new Socket(host, port);
-		writer = new ObjectOutputStream(socket.getOutputStream());
-		reader = new ObjectInputStream(socket.getInputStream());
-	}
+	 Socket socket;
+	 ObjectOutputStream writer;
+	 ObjectInputStream reader;
+	 public TcpClientHandler(String host, int port) throws Exception {
+		 socket = new Socket(host, port);
+		 writer = new ObjectOutputStream(socket.getOutputStream());
+		 reader = new ObjectInputStream(socket.getInputStream());
+	 }
+	@Override
+	public void close() throws IOException {
+		socket.close();
 
+	}
 	@SuppressWarnings("unchecked")
 	@Override
 	public <T> T send(String requestType, Serializable requestData) {
@@ -25,18 +24,15 @@ public class TcpClientHandler implements Closeable, NetworkHandler {
 			writer.writeObject(request);
 			Response response = (Response) reader.readObject();
 			if(response.code() != ResponseCode.OK) {
-				throw new Exception(response.responsData().toString());
+				throw new Exception(response.code() + ": " + response.responseData().toString());
 			}
-			return (T) response.responsData();
-		}catch(Exception e){
+			return (T) response.responseData();
+			
+		} catch (Exception e) {
 			throw new RuntimeException(e.getMessage());
 		}
-	}
-
-	@Override
-	public void close() throws IOException {
-		socket.close();
 		
 	}
+	
 
 }
